@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -24,7 +25,7 @@ public class UserController {
     public User createUser(@RequestBody @Valid User user) {
         user.setId(users.size() + 1);
         validate(user);
-        if(user.getName().isBlank()) {
+        if(StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
         }
         users.put(user.getId(), user);
@@ -36,7 +37,7 @@ public class UserController {
     public User updateUser(@RequestBody @Valid User user) {
         if(users.containsKey(user.getId())) {
             validate(user);
-            if (user.getName().isBlank()) {
+            if (StringUtils.isBlank(user.getName())) {
                 user.setName(user.getLogin());
             }
             users.put(user.getId(), user);

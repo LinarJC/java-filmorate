@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
@@ -53,7 +54,7 @@ public class FilmController {
 
     void validate(Film film) {
         if(film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new RuntimeException("Указанная дата релиза не может быть ранее 28 декабря 1895 года.");
+            throw new DateTimeException("Указанная дата релиза не может быть ранее 28 декабря 1895 года.");
         }
         log.info("Проведена валидация объекта: '{}'", film);
     }
