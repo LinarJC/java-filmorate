@@ -1,12 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,7 +11,6 @@ class UserControllerTest {
 
     @Test
     void validate() {
-        UserController uc = new UserController();
         User user = new User();
         user.setName("");
         user.setEmail("user@yandex.ru");

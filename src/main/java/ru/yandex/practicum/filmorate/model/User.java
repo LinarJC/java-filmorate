@@ -1,9 +1,12 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class User {
@@ -12,11 +15,13 @@ public class User {
     @NotBlank(message = "Адрес электронной почты пользователя не может быть пустым.")
     @Email(message = "Адрес электронной почты пользователя некорректен.")
     private String email;
+    private String name;
     @NotNull(message = "Логин пользователя не может быть пустым.")
     @NotBlank(message = "Логин пользователя не может быть пустым.")
     private String login;
-
-    private String name;
     @Past(message = "Дата рождения не может быть в будущем.")
     private LocalDate birthday;
+
+    @JsonIgnore
+    Set<Integer> friendIds = new HashSet<>();
 }
