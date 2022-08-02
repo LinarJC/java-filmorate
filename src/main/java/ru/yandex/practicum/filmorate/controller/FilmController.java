@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,18 +19,14 @@ import javax.validation.Valid;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/films")
 public class FilmController {
     private final FilmService filmService;
 
-    @Autowired
-    public FilmController(FilmService filmService) {
-        this.filmService = filmService;
-    }
-
     @GetMapping
     public Collection<Film> findAllFilms() {
-        return filmService.getAll();
+        return filmService.findAllFilms();
     }
 
     @GetMapping("/{id}")
@@ -58,7 +55,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> findTopFilmsByCount(@RequestParam(defaultValue = "10") int count) {
-        return filmService.findTopCountFilms(count);
+    public Collection<Film> findPopularFilms(@RequestParam(defaultValue = "10") int count) {
+        return filmService.findPopularFilms(count);
     }
 }
