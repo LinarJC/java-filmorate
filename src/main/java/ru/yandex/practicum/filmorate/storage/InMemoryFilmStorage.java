@@ -20,18 +20,12 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-        validate(film);
-        film.setId(films.size() + 1);
         films.put(film.getId(), film);
-        log.info("Добавлен новый фильм: '{}', ID '{}'", film.getName(), film.getId());
         return film;
     }
 
     @Override
     public Film updateFilm(Film film) {
-        validate(film);
-        isExist(film);
-        log.info("Внесены изменения в фильм: '{}', ID '{}'", film.getName(), film.getId());
         return films.replace(film.getId(), film);
     }
 
@@ -42,63 +36,34 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> findAllFilms() {
-        log.info("Запрошен список фильмов: '{}'", films.values());
         return films.values();
     }
 
     @Override
     public Film findFilm(Integer id) {
-        final Film film = films.getOrDefault(id, null);
-        if (film == null) {
-            throw new NotFoundException("Фильм с данным Id  не найден");
-        }
-        log.info("Запрошен фильм: '{}'", films.getOrDefault(id, null));
-        return film;
+        return films.getOrDefault(id, null);
     }
 
-    public void addLike(Film film, User user) {
-        if(film!=null && user!=null && !film.getUserIds().contains(user.getId())) {
-            Set<Integer> newUsersIds = film.getUserIds();
-            newUsersIds.add(user.getId());
-            film.setUserIds(newUsersIds);
-            films.replace(film.getId(), film);
-            log.info("Добавлен новый like: '{}', ID '{}'", film.getName(), film.getId());
-        } else {
-            throw new NotFoundException("Фильм или пользователь с данными Id  не найдены");
-        }
+    public void addLike(Film film) {
+        films.replace(film.getId(), film);
     }
 
-    public void deleteLike(Film film, User user) {
-        if(film!=null && user!=null && film.getUserIds().contains(user.getId())) {
-            Set<Integer> newUsersIds = film.getUserIds();
-            newUsersIds.remove(user.getId());;
-            film.setUserIds(newUsersIds);
-            films.replace(film.getId(), film);
-            log.info("Удалён like: '{}', ID '{}'", film.getName(), film.getId());
-        } else {
-            throw new NotFoundException("Фильм или пользователь с данными Id  не найдены");
-        }
+    public void deleteLike(Film film) {
+        films.replace(film.getId(), film);
     }
 
-    void isExist(Film film) {
-        if(!films.containsKey(film.getId())) {
-            throw new NotFoundException("Фильм с данным Id  не найден");
-        }
+    public boolean isExist(Film film) {
+        return films.containsKey(film.getId());
+    }
+
+    public boolean isExist(Film film, Integer userId) {
+        return film.getUserIds().contains(userId);
     }
 
     public Collection<Film> sortedListPopularFilms(int count) {
-        Collection<Film> sortedList = findAllFilms().stream()
+        return findAllFilms().stream()
                 .sorted((o1, o2) -> o2.getUserIds().size() - o1.getUserIds().size())
                 .limit(count)
                 .collect(Collectors.toList());
-        log.info("Топ '{}' фильмов: '{}'", count, sortedList);
-        return sortedList;
-    }
-
-    void validate(Film film) {
-        if(film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new DateTimeException("Указанная дата релиза не может быть ранее 28 декабря 1895 года.");
-        }
-        log.info("Проведена валидация объекта: '{}'", film);
     }
 }
