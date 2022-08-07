@@ -1,11 +1,14 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NonNull;
 
 import javax.validation.constraints.*;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class Film {
@@ -19,4 +22,7 @@ public class Film {
     private LocalDate releaseDate;
     @PositiveOrZero(message = "Продолжительность фильма должна быть положительной.")
     private Integer duration;
+    private Integer rate;
+    @JsonIgnore
+    Set<Integer> userIds = new HashSet<>();
 }

@@ -3,9 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,7 +11,6 @@ class FilmControllerTest {
 
     @Test
     void validateFilm() {
-        FilmController fc = new FilmController();
         Film film = new Film();
         film.setName("Того");
         film.setDescription("«Того» рассказывает правдивую историю о погонщике и его собаке-герое " +
