@@ -7,9 +7,9 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.dao.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.dao.UserDbStorage;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -18,13 +18,13 @@ import java.util.*;
 @Service
 @Slf4j
 public class FilmService {
-    InMemoryFilmStorage filmStorage;
-    InMemoryUserStorage userStorage;
+    FilmDbStorage filmStorage;
+    UserDbStorage userStorage;
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
-        this.filmStorage = (InMemoryFilmStorage) filmStorage;
-        this.userStorage = (InMemoryUserStorage) userStorage;
+        this.filmStorage = (FilmDbStorage) filmStorage;
+        this.userStorage = (UserDbStorage) userStorage;
     }
 
     public Film get(int filmId) {
@@ -43,7 +43,6 @@ public class FilmService {
 
     public Film addFilm(Film film) {
         validate(film);
-        film.setId(filmStorage.findAllFilms().size() + 1);
         log.info("Добавлен новый фильм: '{}', ID '{}'", film.getName(), film.getId());
         return filmStorage.addFilm(film);
     }
@@ -53,9 +52,8 @@ public class FilmService {
         if(!filmStorage.isExist(film)) {
             throw new NotFoundException("Фильм с данным Id  не найден");
         }
-        filmStorage.updateFilm(film);
         log.info("Внесены изменения в фильм: '{}', ID '{}'", film.getName(), film.getId());
-        return film;
+        return filmStorage.updateFilm(film);
     }
 
     public void addLike(int filmId, int userId) {
@@ -65,7 +63,7 @@ public class FilmService {
             Set<Integer> newUsersIds = film.getUserIds();
             newUsersIds.add(userId);
             film.setUserIds(newUsersIds);
-            filmStorage.addLike(film);
+            filmStorage.addLike(film, user);
             log.info("Добавлен новый like: '{}', ID '{}'", film.getName(), film.getId());
         } else {
             throw new NotFoundException("Фильм с данным Id  не найден");
@@ -79,7 +77,7 @@ public class FilmService {
             Set<Integer> newUsersIds = film.getUserIds();
             newUsersIds.remove(userId);;
             film.setUserIds(newUsersIds);
-            filmStorage.deleteLike(film);
+            filmStorage.deleteLike(film, user);
             log.info("Удалён like: '{}', ID '{}'", film.getName(), film.getId());
         } else {
             throw new NotFoundException("Фильм с данным Id  не найден");

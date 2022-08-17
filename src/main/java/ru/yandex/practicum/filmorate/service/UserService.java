@@ -6,19 +6,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.dao.UserDbStorage;
 
 import java.util.*;
 
 @Slf4j
 @Service
 public class UserService {
-    InMemoryUserStorage userStorage;
+    UserDbStorage userStorage;
 
     @Autowired
     public UserService(UserStorage userStorage) {
-        this.userStorage = (InMemoryUserStorage) userStorage;
+        this.userStorage = (UserDbStorage) userStorage;
     }
 
     public User get(int userId) {
@@ -77,10 +77,9 @@ public class UserService {
     }
 
     public Collection<User> findMutualFriends(int userId, int friendId) {
-        final User user = userStorage.findUser(userId);
         final User friend = userStorage.findUser(friendId);
         Set<User> mutualFriends = new HashSet<>();
-        for(Integer id : user.getFriendIds())
+        for(Integer id : userStorage.getUserFriendsById(userId))
             if (friend.getFriendIds().contains(id)) mutualFriends.add(userStorage.findUser(id));
         return mutualFriends;
     }

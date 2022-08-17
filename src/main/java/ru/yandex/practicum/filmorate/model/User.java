@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.*;
@@ -9,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@Builder
 public class User {
     private Integer id;
     @NotNull(message = "Адрес электронной почты пользователя не может быть пустым.")
@@ -23,5 +25,5 @@ public class User {
     private LocalDate birthday;
 
     @JsonIgnore
-    Set<Integer> friendIds = new HashSet<>();
+    Set<Integer> friendIds;
 }
