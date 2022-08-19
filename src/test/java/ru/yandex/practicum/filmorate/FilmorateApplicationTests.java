@@ -16,17 +16,5 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FilmorateApplicationTests {
-    private final UserStorage userStorage;
 
-    @Test
-    public void testFindUserById() {
-
-        Optional<User> userOptional = Optional.ofNullable(userStorage.findUser(1));
-
-        assertThat(userOptional)
-                .isPresent()
-                .hasValueSatisfying(user ->
-                        assertThat(user).hasFieldOrPropertyWithValue("id", 1)
-                );
-    }
 }
