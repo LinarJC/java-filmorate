@@ -6,33 +6,36 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.DBException;
 import ru.yandex.practicum.filmorate.model.MPA;
+import ru.yandex.practicum.filmorate.storage.MPAStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 @Primary
-public class MPADbStorage {
+@RequiredArgsConstructor
+public class MPADbStorage implements MPAStorage {
     private final JdbcTemplate jdbcTemplate;
-
+    @Override
     public MPA get(Integer id) {
         String sql = "select * from MPA_RATINGS where MPA_ID = ?";
         List<MPA> query = jdbcTemplate.query(sql, this::mapRowToMpa, id);
-        switch (query.size()) {
-            case 0: return null;
-            case 1: return query.get(0);
-            default: throw new DBException(String.format("Ошибка при запросе данных из БД MPA, id=%s.", id));
+        if (query.size() == 0 ) {
+            return null;
+        } else if (query.size() != 1 ){
+            throw new DBException(String.format("Ошибка при запросе данных из БД MPA_RATINGS, id=%s.", id));
         }
+        return query.get(0);
     }
-
+    @Override
     public List<MPA> getAll() {
         String sql = "select * from MPA_RATINGS";
         return jdbcTemplate.query(sql, this::mapRowToMpa);
     }
 
-    private MPA mapRowToMpa(ResultSet resultSet, int numRow) throws SQLException {
+    @Override
+    public MPA mapRowToMpa(ResultSet resultSet, int numRow) throws SQLException {
         return MPA.builder()
                 .id(resultSet.getInt("MPA_ID"))
                 .name(resultSet.getString("MPA_NAME"))

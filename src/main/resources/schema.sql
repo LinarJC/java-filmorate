@@ -31,6 +31,7 @@ create table if not exists FILMS
     RELEASE_DATE DATE                   not null,
     DURATION     INTEGER                not null,
     MPA_ID      INTEGER                not null,
+    RATE      INTEGER,
     constraint FILMS_PK
         primary key (FILM_ID),
     constraint FOREIGN_KEY_MPA
@@ -41,7 +42,7 @@ create table if not exists FILMS_GENRES
 (
     FILM_ID  INTEGER not null,
     GENRE_ID INTEGER not null,
-    UNIQUE(FILM_ID, GENRE_ID),
+    PRIMARY KEY (FILM_ID, GENRE_ID),
     constraint FOREIGN_KEY_FILM_ID
         foreign key (FILM_ID) references FILMS,
     constraint FOREIGN_KEY_GENRE_ID
@@ -69,6 +70,7 @@ create table if not exists FRIENDS
 (
     USER_ID   INTEGER not null,
     FRIEND_ID INTEGER not null,
+    PRIMARY KEY (USER_ID, FRIEND_ID),
     constraint FOREIGN_KEY_FRIEND
         foreign key (FRIEND_ID) references USERS,
     constraint FOREIGN_KEY_USER
@@ -79,6 +81,7 @@ create table if not exists LIKES
 (
     FILM_ID INTEGER not null,
     USER_ID INTEGER not null,
+    PRIMARY KEY (FILM_ID, USER_ID),
     constraint FOREIGN_KEY_FILM
         foreign key (FILM_ID) references FILMS,
     constraint FOREIGN_KEY_USERLIKE

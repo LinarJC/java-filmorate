@@ -7,15 +7,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public interface UserStorage {
-    final Map<Integer, User> users = new HashMap<>();
 
-    public User addUser(User user);
+    User addUser(User user);
 
-    public User updateUser(User user);
+    User updateUser(User user);
 
-    public User removeUser(User user);
+    User removeUser(User user);
 
-    public Collection<User> findAllUsers();
+    void removeAll();
 
-    public User findUser(Integer id);
+    Collection<User> findAllUsers();
+
+    User findUser(Integer id);
+
+    boolean isExist(User user);
+
 }

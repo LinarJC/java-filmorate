@@ -32,6 +32,7 @@ public class FilmDbStorage implements FilmStorage {
             throw new DBException(String.format("Ошибка при добавлении в БД FILMS, id=%s.", film.getId()));
         film.setId(jdbcTemplate.queryForObject("select max(FILM_ID) from FILMS", Integer.class));
         addFilmGenre(film);
+        film.setRate(0);
         return film;
     }
 
@@ -41,22 +42,20 @@ public class FilmDbStorage implements FilmStorage {
                 "join MPA_RATINGS on FILMS.MPA_ID = MPA_RATINGS.MPA_ID " +
                 "where FILM_ID = ?";
         List<Film> query = jdbcTemplate.query(sql, this::mapRowToFilm, id);
-
-        switch (query.size()) {
-            case 0:
-                return null;
-            case 1:
-                return query.get(0);
-            default:
-                throw new DBException(String.format("Ошибка при запросе данных из БД FILMS, id=%s.", id));
+        if (query.size() == 0 ) {
+            return null;
+        } else if (query.size() != 1 ){
+            throw new DBException(String.format("Ошибка при запросе данных из БД FILMS, id=%s.", id));
         }
+        return query.get(0);
     }
+
 
     @Override
     public Collection<Film> findAllFilms() {
         final String sql = "select * " +
-                "from FILMS " +
-                "join MPA_RATINGS on FILMS.MPA_ID = MPA_RATINGS.MPA_ID ";
+                "from FILMS, MPA_RATINGS " +
+                "where FILMS.MPA_ID = MPA_RATINGS.MPA_ID";
         return jdbcTemplate.query(sql, this::mapRowToFilm);
     }
 
@@ -97,31 +96,9 @@ public class FilmDbStorage implements FilmStorage {
                         .name(resultSet.getString("MPA_NAME"))
                         .build())
                 .build();
-        film.setUserIds(getFilmLikesById(film.getId()));
         getFilmGenre(film);
+        updateRate(resultSet.getInt("FILM_ID"));
         return film;
-    }
-
-    public void addLike(Film film, User user) {
-        String sql = "insert into LIKES(FILM_ID, USER_ID) " +
-                "VALUES (?, ?)";
-        if (jdbcTemplate.update(sql, film.getId(), user.getId()) == 0)
-            throw new DBException(String.format("Ошибка при добавлении в БД LIKES, id=%s.", film.getId()));
-    }
-
-    public Set<Integer> getFilmLikesById(int id) {
-        String sqlQuery = "SELECT * FROM LIKES WHERE FILM_ID = ?";
-        List<Integer> userLikes = jdbcTemplate.query(sqlQuery, this::mapRowToLike, id);
-        return new LinkedHashSet<>(userLikes);
-    }
-
-    public void deleteLike(Film film, User user) {
-        String sql = "delete from LIKES where FILM_ID = ? and USER_ID = ?";
-        if (jdbcTemplate.update(sql, film.getId(), user.getId()) == 0)
-            throw new DBException(String.format("Ошибка при удалении из БД LIKES, film ID=%s, user ID=%s.",film.getId(), user.getId()));
-    }
-    private Integer mapRowToLike(ResultSet resultSet, int numRow) throws SQLException {
-        return resultSet.getInt("USER_ID");
     }
 
     public void addFilmGenre(Film film) {
@@ -155,15 +132,17 @@ public class FilmDbStorage implements FilmStorage {
         return findFilm(film.getId()) != null;
     }
 
-    public boolean isExist(Film film, Integer userId) {
-        String sqlQuery = "SELECT * FROM LIKES WHERE FILM_ID = ? AND USER_ID = ?";
-        return jdbcTemplate.query(sqlQuery, this::mapRowToLike, film.getId(), userId).size() == 1;
+    public Collection<Film> sortedListPopularFilms(int count) {
+        String sqlQuery = "select * from FILMS join MPA_RATINGS on FILMS.MPA_ID = MPA_RATINGS.MPA_ID " +
+                "order by RATE DESC limit ?";
+        return jdbcTemplate.query(sqlQuery, this::mapRowToFilm, count);
     }
 
-    public Collection<Film> sortedListPopularFilms(int count) {
-        return findAllFilms().stream()
-                .sorted((o1, o2) -> o2.getUserIds().size() - o1.getUserIds().size())
-                .limit(count)
-                .collect(Collectors.toList());
+    @Override
+    public void updateRate(Integer filmId) {
+        String sql = "update FILMS f " +
+                "set RATE = (select count(l.USER_ID) from LIKES l " +
+                "where l.FILM_ID = f.FILM_ID) where FILM_ID = ?";
+        jdbcTemplate.update(sql, filmId);
     }
 }

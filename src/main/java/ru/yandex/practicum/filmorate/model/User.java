@@ -23,7 +23,4 @@ public class User {
     private String login;
     @Past(message = "Дата рождения не может быть в будущем.")
     private LocalDate birthday;
-
-    @JsonIgnore
-    Set<Integer> friendIds;
 }

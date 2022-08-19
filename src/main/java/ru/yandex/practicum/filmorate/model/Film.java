@@ -28,9 +28,8 @@ public class Film {
     @PositiveOrZero(message = "Продолжительность фильма должна быть положительной.")
     private Integer duration;
     private Integer rate;
+    @NotNull(message = " MPA категория фильма не может быть пустой.")
     private MPA mpa;
 
-    @JsonIgnore
-    Set<Integer> userIds;
-    Set<Genre> genres;
+    private Set<Genre> genres;
 }

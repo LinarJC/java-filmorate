@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.storage.dao.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.dao.UserDbStorage;
@@ -18,13 +19,16 @@ import java.util.*;
 @Service
 @Slf4j
 public class FilmService {
-    FilmDbStorage filmStorage;
-    UserDbStorage userStorage;
+    private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
+
+    private final LikeStorage likeStorage;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
-        this.filmStorage = (FilmDbStorage) filmStorage;
-        this.userStorage = (UserDbStorage) userStorage;
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage, LikeStorage likeStorage) {
+        this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
+        this.likeStorage = likeStorage;
     }
 
     public Film get(int filmId) {
@@ -59,11 +63,9 @@ public class FilmService {
     public void addLike(int filmId, int userId) {
         final Film film = filmStorage.findFilm(filmId);
         final User user = userStorage.findUser(userId);
-        if (film != null && user != null && !filmStorage.isExist(film, userId)) {
-            Set<Integer> newUsersIds = film.getUserIds();
-            newUsersIds.add(userId);
-            film.setUserIds(newUsersIds);
-            filmStorage.addLike(film, user);
+        if (film != null && user != null && !likeStorage.isExist(filmId, userId)) {
+            likeStorage.addLike(filmId, userId);
+            filmStorage.updateRate(filmId);
             log.info("Добавлен новый like: '{}', ID '{}'", film.getName(), film.getId());
         } else {
             throw new NotFoundException("Фильм с данным Id  не найден");
@@ -73,11 +75,8 @@ public class FilmService {
     public void deleteLike(int filmId, int userId) {
         final Film film = filmStorage.findFilm(filmId);
         final User user = userStorage.findUser(userId);
-        if(film!=null && user!=null && filmStorage.isExist(film, userId)) {
-            Set<Integer> newUsersIds = film.getUserIds();
-            newUsersIds.remove(userId);;
-            film.setUserIds(newUsersIds);
-            filmStorage.deleteLike(film, user);
+        if(film!=null && user!=null && likeStorage.isExist(filmId, userId)) {
+            likeStorage.deleteLike(filmId, userId);
             log.info("Удалён like: '{}', ID '{}'", film.getName(), film.getId());
         } else {
             throw new NotFoundException("Фильм с данным Id  не найден");
@@ -89,7 +88,7 @@ public class FilmService {
         return filmStorage.sortedListPopularFilms(count);
     }
 
-    void validate(Film film) {
+    private void validate(Film film) {
         if(film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             throw new DateTimeException("Указанная дата релиза не может быть ранее 28 декабря 1895 года.");
         }
