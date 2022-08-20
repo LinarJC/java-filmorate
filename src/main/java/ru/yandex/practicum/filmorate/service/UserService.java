@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
@@ -14,11 +14,14 @@ import java.util.*;
 @Slf4j
 @Service
 public class UserService {
-    InMemoryUserStorage userStorage;
+    private final UserStorage userStorage;
+
+    private final FriendStorage friendStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
-        this.userStorage = (InMemoryUserStorage) userStorage;
+    public UserService(UserStorage userStorage, FriendStorage friendStorage) {
+        this.userStorage = userStorage;
+        this.friendStorage = friendStorage;
     }
 
     public User get(int userId) {
@@ -63,37 +66,35 @@ public class UserService {
             throw new NotFoundException("Пользователь с данным Id " + userId + " не найден");
         } else if (friend == null){
             throw new NotFoundException("Друг с данным Id " + friendId + " не найден");
-        } else if (!userStorage.isExist(user, friend)){
-            userStorage.addFriend(user, friend);
+        } else if (!friendStorage.isExist(userId, friendId)){
+            friendStorage.addFriend(userId, friendId);
         }
     }
 
     public void deleteFriend(int userId, int friendId) {
         final User user = userStorage.findUser(userId);
         final User friend = userStorage.findUser(friendId);
-        if(user!=null && friend!=null && userStorage.isExist(user, friend)) {
-            userStorage.deleteFriend(user, friend);
+        if(user!=null && friend!=null && friendStorage.isExist(userId, friendId)) {
+            friendStorage.deleteFriend(userId, friendId);
         }
     }
 
     public Collection<User> findMutualFriends(int userId, int friendId) {
-        final User user = userStorage.findUser(userId);
         final User friend = userStorage.findUser(friendId);
         Set<User> mutualFriends = new HashSet<>();
-        for(Integer id : user.getFriendIds())
-            if (friend.getFriendIds().contains(id)) mutualFriends.add(userStorage.findUser(id));
+        for(Integer id : friendStorage.getUserFriendsById(userId))
+            if (friendStorage.getUserFriendsById(friendId).contains(id)) mutualFriends.add(userStorage.findUser(id));
         return mutualFriends;
     }
 
     public Collection<User> findAllFriends(int userId) {
         Set<User> friends = new HashSet<>();
-        for(Integer id : userStorage.findUser(userId).getFriendIds())  {
+        for(Integer id : friendStorage.getUserFriendsById(userId))  {
             friends.add(userStorage.findUser(id));
         }
         return friends;
     }
-
-    void validate(User user) {
+    private void validate(User user) {
         if (user.getLogin().contains(" ")) {
             throw new RuntimeException("Логин содержит пробелы.");
         }

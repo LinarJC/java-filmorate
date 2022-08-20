@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,15 +9,20 @@ import java.util.Map;
 
 public interface FilmStorage {
 
-    public Film addFilm(Film film);
+    Film addFilm(Film film);
 
-    public Film updateFilm(Film film);
+    Film updateFilm(Film film);
 
-    public Film removeFilm(Film film);
+    Film removeFilm(Film film);
 
-    public Collection<Film> findAllFilms();
+    Collection<Film> findAllFilms();
 
-    public Film findFilm(Integer id);
+    Film findFilm(Integer id);
 
 
+    boolean isExist(Film film);
+
+    Collection<Film> sortedListPopularFilms(int count);
+
+    void updateRate(Integer filmId);
 }
